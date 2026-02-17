@@ -1,6 +1,7 @@
 import { getOrganizations } from 'data/organizations/organizations-query'
 import { getProjectDetail } from 'data/projects/project-detail-query'
 import { getAiOptInLevel } from 'hooks/misc/useOrgOptedIntoAi'
+import { checkEntitlement } from 'data/entitlements/entitlements-query'
 
 export const getOrgAIDetails = async ({
   orgSlug,
@@ -16,9 +17,10 @@ export const getOrgAIDetails = async ({
     ...(authorization && { Authorization: authorization }),
   }
 
-  const [organizations, selectedProject] = await Promise.all([
+  const [organizations, selectedProject, advanceModelAccess] = await Promise.all([
     getOrganizations({ headers }),
     getProjectDetail({ ref: projectRef }, undefined, headers),
+    checkEntitlement(orgSlug, 'assistant.advance_model'),
   ])
 
   const selectedOrg = organizations.find((org) => org.slug === orgSlug)
@@ -29,7 +31,7 @@ export const getOrgAIDetails = async ({
   }
 
   const aiOptInLevel = getAiOptInLevel(selectedOrg?.opt_in_tags)
-  const isLimited = selectedOrg?.plan.id === 'free'
+  const isLimited = advanceModelAccess.hasAccess
 
   return {
     aiOptInLevel,
