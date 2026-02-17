@@ -20,7 +20,7 @@ export const getOrgAIDetails = async ({
   const [organizations, selectedProject, advanceModelAccess] = await Promise.all([
     getOrganizations({ headers }),
     getProjectDetail({ ref: projectRef }, undefined, headers),
-    checkEntitlement(orgSlug, 'assistant.advance_model'),
+    checkEntitlement(orgSlug, 'assistant.advance_model', undefined, headers),
   ])
 
   const selectedOrg = organizations.find((org) => org.slug === orgSlug)
@@ -31,7 +31,7 @@ export const getOrgAIDetails = async ({
   }
 
   const aiOptInLevel = getAiOptInLevel(selectedOrg?.opt_in_tags)
-  const isLimited = advanceModelAccess.hasAccess
+  const isLimited = !advanceModelAccess.hasAccess
 
   return {
     aiOptInLevel,
